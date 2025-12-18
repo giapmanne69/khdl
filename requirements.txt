@@ -9,3 +9,4 @@ shutil
 matplotlib
 seaborn
 spicy
+sklearn
