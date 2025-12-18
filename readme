@@ -1,0 +1,96 @@
+# KKBox Music Recommendation System (End-to-End Project)
+
+Dự án xây dựng hệ thống gợi ý bài hát Hybrid (Lai ghép) thông minh, đi từ phân tích dữ liệu thô (EDA) đến triển khai ứng dụng thực tế (Real-time Web App). Hệ thống kết hợp giữa **Collaborative Filtering (SVD)**, **Content-Based Filtering** và các **Chiến thuật Nghiệp vụ (Business Rules)** đặc thù.
+
+---
+
+## 📚 Tổng quan các giai đoạn (Project Roadmap)
+
+Dự án được chia làm 7 giai đoạn chính (Phases):
+
+### 🔹 Phase 1 & 2: Data Preprocessing & EDA (Tiền xử lý & Khám phá)
+* **Mục tiêu:** Làm sạch dữ liệu và tìm ra các "Gold Features".
+* **Kỹ thuật:**
+    * Xử lý Missing Values (KNN Imputer).
+    * Chuẩn hóa dữ liệu (MinMaxScaler cho độ dài bài hát, tuổi).
+    * **TF-IDF** để xử lý tên nghệ sĩ và nhạc sĩ.
+    * **SVD** để giảm chiều dữ liệu thể loại (Genre).
+* **Key Insights:**
+    * Phát hiện "Various Artists" là dữ liệu nhiễu.
+    * Ngôn ngữ 31 có tỷ lệ nghe lại (Retention) cao nhất.
+    * Độ dài bài hát "vàng" nằm trong khoảng 3.5 - 4.2 phút.
+
+### 🔹 Phase 3: Base Modeling (Mô hình lõi)
+* **Mục tiêu:** Xây dựng các thuật toán cơ bản.
+* **Content-Based:** Sử dụng `Cosine Similarity` để tìm bài hát tương tự về mặt nội dung (Artist, Genre, Language).
+* **Collaborative Filtering:** Sử dụng `TruncatedSVD` (Matrix Factorization) để học hành vi người dùng trên ma trận thưa.
+
+### 🔹 Phase 4: Business Tactics (Chiến thuật Nghiệp vụ)
+* **Mục tiêu:** Tinh chỉnh kết quả gợi ý dựa trên Insight từ Phase 2 để tăng trải nghiệm người dùng (UX).
+* **Chiến thuật áp dụng:**
+    1.  **Penalty (Phạt):** Giảm điểm mạnh các bài hát thuộc "Various Artists" (x0.7) và thể loại Pop đại trà (x0.5) để tránh spam.
+    2.  **Boost (Thưởng):** Tăng điểm (x1.25) cho danh sách **High-Trust Artists** (Nghệ sĩ có tỷ lệ nghe lại > 65% như Jason Mraz).
+    3.  **Context Boost:** Tăng điểm cực mạnh (x1.5) cho bài hát **Ngôn ngữ 31** nếu phát hiện User có gu này.
+    4.  **Gold Duration:** Ưu tiên bài hát có thời lượng 3.5 - 4.2 phút.
+
+### 🔹 Phase 5: Evaluation & Optimization (Đánh giá & Tối ưu)
+* **Mục tiêu:** Cân bằng giữa độ chính xác toán học (RMSE) và độ hài lòng (Hit Rate).
+* **Hành động:**
+    * Tăng `n_components` của SVD lên **50** để giảm RMSE xuống mức chấp nhận được.
+    * Thiết lập tỷ trọng Hybrid: **70% CF + 30% Content-Based**.
+    * Sử dụng Simulation để đo lường **Hit Rate@10** (Tỷ lệ gợi ý trúng ít nhất 1 bài user thích).
+
+### 🔹 Phase 6: Web Application (Giao diện cơ bản)
+* **Công nghệ:** Streamlit.
+* **Tính năng:**
+    * Cho phép chọn User và Bài hát ngữ cảnh.
+    * Hiển thị danh sách Top 10 kèm lý do gợi ý (VD: "Uy tín⭐", "Gu Lang31🔥").
+    * Trực quan hóa điểm số bằng thanh tiến trình.
+
+### 🔹 Phase 7: Advanced Real-time System (Hệ thống Nâng cao)
+* **Mục tiêu:** Biến dự án thành sản phẩm có khả năng học tức thì (Online Learning).
+* **Tính năng đột phá:**
+    * **Firebase Database:** Lưu trữ lịch sử nghe nhạc vĩnh viễn.
+    * **Dynamic Embeddings:** Vector sở thích của User không còn tĩnh. Nó được cập nhật ngay lập tức theo công thức:
+      $$V_{new} = 0.7 \times V_{long\_term} + 0.3 \times V_{short\_term}$$
+    * **Real-time Interaction:** Người dùng bấm "Nghe" -> Hệ thống log vào DB -> Tính lại Vector -> Gợi ý thay đổi ngay lập tức.
+    * **Cloud Ready:** Cấu trúc code sẵn sàng để deploy lên Streamlit Cloud.
+
+---
+
+## 🛠️ Cài đặt & Chạy dự án
+
+### 1. Yêu cầu hệ thống
+* Python 3.8+
+* Các thư viện:
+    ```text
+    streamlit
+    pandas
+    numpy
+    scikit-learn
+    scipy
+    ```
+
+### 2. Cấu trúc thư mục
+project_folder/ 
+├── 1_data_crawling.py #Tải dữ liệu từ Kaggle
+├── 2_data_cleaning.py #Làm sạch dữ liệu, xuất dữ liệu mới
+├── 3_visualization.py #Trực quan hóa dữ liệu
+├── 4_modeling.py #Xây dựng mô hình
+├── 5_evaluation.py #Đánh giá mô hình
+├── 6_web.py # Mã nguồn chính 
+├── datasets #Thư mục dữ liệu gốc
+└── final_datasets/ # Thư mục dữ liệu đã xử lý 
+    ├── processed_songs.csv #Dữ liệu bài hát đã được xử lý
+    ├── processed_train.csv #Dữ liệu train đã được xử lý
+    ├── song_mapping.csv #Dữ liệu bài hát gốc kèm song_id đã được mã hóa
+    └── members_mapping.csv #Dữ liệu người dùng gốc kèm user_id đã được mã hóa
+
+---
+
+## 🌟 Điểm nổi bật của Thuật toán (Algorithm Highlights)
+
+1.  **SVD Tuned:** Sử dụng Matrix Factorization với 50 chiều ẩn để nắm bắt các pattern phức tạp.
+2.  **Hybrid Engine:** Kết hợp sức mạnh của việc hiểu nội dung bài hát (Content) và hành vi đám đông (CF).
+3.  **Real-time Feedback Loop:** Hệ thống không chờ train lại (Re-train) mà phản ứng ngay lập tức với hành động mới nhất của người dùng nhờ kỹ thuật **Vector Averaging**.
+4.  **Anti-Noise Logic:** Các bộ lọc nghiệp vụ giúp loại bỏ các gợi ý rác (Various Artists) và tăng tính đa dạng (Diversity) cho danh sách phát.
